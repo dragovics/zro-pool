@@ -1,0 +1,60 @@
+# =============================================================================
+# zro-pool — systemd unit (deploy tanpa Docker)
+#
+# Langkah install (jalankan sebagai root / sudo):
+#
+#   # 1) Install Node.js >= 20 (NodeSource) — lewati kalau sudah ada:
+#   curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+#     && apt-get install -y nodejs
+#
+#   # 2) Taruh kode di /opt/zro-pool lalu install dependency:
+#   mkdir -p /opt/zro-pool
+#   rsync -a ./ /opt/zro-pool/          # atau: git clone <repo> /opt/zro-pool
+#   cd /opt/zro-pool && npm install --omit=dev
+#
+#   # 3) Buat user khusus non-login + folder data:
+#   useradd --system --home /opt/zro-pool --shell /usr/sbin/nologin zro-pool
+#   mkdir -p /opt/zro-pool/data
+#   chown -R zro-pool:zro-pool /opt/zro-pool
+#
+#   # 4) File environment — WAJIB ganti ADMIN_PASSWORD!
+#   cp .env.example .env && nano .env
+#   chown zro-pool:zro-pool .env && chmod 600 .env
+#
+#   # 5) Pasang unit ini lalu aktifkan:
+#   cp deploy/zro-pool.service /etc/systemd/system/zro-pool.service
+#   systemctl daemon-reload
+#   systemctl enable --now zro-pool
+#
+#   # 6) Cek status & log:
+#   systemctl status zro-pool
+#   journalctl -u zro-pool -f
+#
+# Catatan: kalau binary node bukan di /usr/bin/node (mis. install via nvm),
+# sesuaikan ExecStart di bawah dengan hasil `which node`.
+# Untuk HTTPS di depan service ini, lihat deploy/Caddyfile.
+# =============================================================================
+
+[Unit]
+Description=zro-pool - Zro API key pool gateway (zro.moonmath.ai)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=zro-pool
+Group=zro-pool
+WorkingDirectory=/opt/zro-pool
+EnvironmentFile=/opt/zro-pool/.env
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+
+# Hardening ringan (aman untuk service Node biasa)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

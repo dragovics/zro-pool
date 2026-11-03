@@ -1,0 +1,18 @@
+{
+  "name": "zro-pool",
+  "version": "1.0.0",
+  "description": "Zro key-pool gateway: round-robin/affinity proxy over multiple zro.moonmath.ai keys with dashboard",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "mock": "node test/mock-upstream.js",
+    "test": "node test/e2e.mjs"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1",
+    "better-sqlite3": "^12.2.0"
+  },
+  "license": "MIT"
+}

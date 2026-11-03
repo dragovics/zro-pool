@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Zro Pool — Dashboard Admin</title>
+<link rel="stylesheet" href="/admin/style.css">
+<script src="/admin/app.js" defer></script>
+</head>
+<body>
+
+<!-- ======== Login ======== -->
+<div id="view-login" class="login-wrap hidden">
+  <form id="login-form" class="login-card" novalidate>
+    <div class="brand">ZRO&nbsp;POOL</div>
+    <p class="login-sub">Masuk ke dashboard admin gateway</p>
+    <label class="field">
+      <span>User</span>
+      <input id="login-user" autocomplete="username" spellcheck="false" autofocus>
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input id="login-pass" type="password" autocomplete="current-password">
+    </label>
+    <div id="login-err" class="form-error hidden"></div>
+    <button class="btn primary block" type="submit">Masuk</button>
+    <noscript><p class="form-error">Dashboard ini membutuhkan JavaScript.</p></noscript>
+  </form>
+</div>
+
+<!-- ======== Aplikasi ======== -->
+<div id="view-app" class="hidden">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand small">ZRO&nbsp;POOL</div>
+      <nav id="nav" class="nav" aria-label="Navigasi dashboard">
+        <button class="nav-btn" type="button" data-action="nav" data-section="ringkasan">Ringkasan</button>
+        <button class="nav-btn" type="button" data-action="nav" data-section="keys">Key Upstream</button>
+        <button class="nav-btn" type="button" data-action="nav" data-section="gateway">Key Gateway</button>
+        <button class="nav-btn" type="button" data-action="nav" data-section="settings">Pengaturan</button>
+        <button class="nav-btn" type="button" data-action="nav" data-section="endpoint">Endpoint</button>
+      </nav>
+      <div id="user-chip" class="user-chip" title="User login"></div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ===== Ringkasan ===== -->
+    <section class="section" data-name="ringkasan">
+      <div class="stat-grid">
+        <div class="card stat">
+          <div class="stat-label">Requests 24 jam</div>
+          <div class="stat-value" id="stat-req">–</div>
+          <div class="stat-sub" id="stat-req-sub"></div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">Token Input 24 jam</div>
+          <div class="stat-value" id="stat-tok-in">–</div>
+          <div class="stat-sub" id="stat-tok-in-sub"></div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">Token Output 24 jam</div>
+          <div class="stat-value" id="stat-tok-out">–</div>
+          <div class="stat-sub" id="stat-tok-out-sub"></div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">Cache Hit Rate 24 jam</div>
+          <div class="stat-value" id="stat-cache">–</div>
+          <div class="stat-sub" id="stat-cache-sub"></div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">Key Upstream</div>
+          <div class="stat-pills" id="stat-keys">–</div>
+          <div class="stat-sub" id="stat-keys-sub"></div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">Inflight &amp; Antrean</div>
+          <div class="stat-value" id="stat-live">–</div>
+          <div class="stat-sub" id="stat-live-sub">inflight / antre (realtime)</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Requests per Jam (24 jam terakhir)</div>
+          <canvas id="chart" class="chart" height="240" role="img" aria-label="Grafik batang requests per jam"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Model Teratas (24 jam)</div>
+          <div id="top-models"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Key Upstream ===== -->
+    <section class="section" data-name="keys" hidden>
+      <div class="card">
+        <div class="card-title">Key Upstream <span id="keys-count" class="count-chip"></span></div>
+        <div class="table-scroll">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Status</th>
+                <th>Inflight / Limit</th>
+                <th>Cache Hit</th>
+                <th>Requests</th>
+                <th>Token (in/out/cache)</th>
+                <th>Error Terakhir</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="keys-tbody">
+              <tr><td colspan="8" class="empty">Memuat…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Tambah Key</div>
+        <form id="add-key-form" class="add-key-grid">
+          <textarea id="add-keys-text" rows="5" class="mono"
+            placeholder="Tempel key di sini, satu key per baris&#10;sk-aaaa...&#10;sk-bbbb..." required></textarea>
+          <div class="add-key-side">
+            <label class="field">
+              <span>Label (opsional)</span>
+              <input id="add-key-label" placeholder="mis. akun utama" maxlength="100">
+            </label>
+            <button class="btn primary" type="submit">Tambah</button>
+            <div class="hint">Duplikat otomatis dilewati. Maks 500 key sekali tambah.</div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== Key Gateway ===== -->
+    <section class="section" data-name="gateway" hidden>
+      <div class="card">
+        <div class="card-title">Buat Gateway Key Baru</div>
+        <form id="gw-create-form" class="inline-form">
+          <input id="gw-name" placeholder="Nama (mis. laptop, produksi)" maxlength="100">
+          <button class="btn primary" type="submit">Buat Key</button>
+        </form>
+        <div class="hint">Key dipakai klien sebagai Bearer token ke <span class="mono">/v1/*</span>.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Daftar Gateway Key <span id="gw-count" class="count-chip"></span></div>
+        <div id="gw-list" class="gw-list"><div class="empty">Memuat…</div></div>
+      </div>
+    </section>
+
+    <!-- ===== Pengaturan ===== -->
+    <section class="section" data-name="settings" hidden>
+      <div class="card">
+        <div class="card-title">Pengaturan Routing</div>
+        <form id="settings-form" class="form-col">
+          <label class="field">
+            <span>Routing Mode</span>
+            <select id="set-routing">
+              <option value="affinity">Cache-Affinity (rekomendasi)</option>
+              <option value="no_rotate">No-Rotate</option>
+              <option value="round_robin">Round-Robin</option>
+            </select>
+            <div id="routing-desc" class="hint"></div>
+          </label>
+          <label class="field">
+            <span>Queue Timeout (detik)</span>
+            <input id="set-timeout" type="number" min="1" max="300" step="0.5">
+            <div class="hint">1–300 detik. Lama request mengantre saat semua key penuh sebelum ditolak 429.</div>
+          </label>
+          <label class="check">
+            <input id="set-failback" type="checkbox">
+            <span>Failback otomatis ke key utama (mode No-Rotate)</span>
+          </label>
+          <button class="btn primary self-start" type="submit">Simpan Pengaturan</button>
+        </form>
+        <div id="settings-info" class="hint"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Ganti Password</div>
+        <form id="password-form" class="form-col">
+          <label class="field">
+            <span>Password Lama</span>
+            <input id="pw-old" type="password" autocomplete="current-password">
+          </label>
+          <label class="field">
+            <span>Password Baru</span>
+            <input id="pw-new" type="password" autocomplete="new-password">
+          </label>
+          <label class="field">
+            <span>Konfirmasi Password Baru</span>
+            <input id="pw-confirm" type="password" autocomplete="new-password">
+          </label>
+          <div id="pw-err" class="form-error hidden"></div>
+          <button class="btn primary self-start" type="submit">Ganti Password</button>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-title">Sesi</div>
+        <p class="hint">Keluar dari dashboard di browser ini.</p>
+        <button id="logout-btn" class="btn danger" type="button">Keluar (Logout)</button>
+      </div>
+    </section>
+
+    <!-- ===== Endpoint ===== -->
+    <section class="section" data-name="endpoint" hidden>
+      <div class="card">
+        <div class="card-title">Konfigurasi Klien</div>
+        <div class="ep-row">
+          <span class="ep-label">Base URL</span>
+          <code id="ep-base" class="ep-code mono"></code>
+          <button class="btn small" type="button" data-action="copy" data-target="ep-base">Salin</button>
+        </div>
+        <div class="ep-row">
+          <span class="ep-label">Gateway Key</span>
+          <select id="ep-key-select"></select>
+          <code id="ep-key-code" class="ep-code mono"></code>
+          <button class="btn small" type="button" data-action="copy" data-target="ep-key-code">Salin</button>
+        </div>
+        <div id="ep-hint" class="hint"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Contoh cURL</div>
+          <button class="btn small" type="button" data-action="copy-curl">Salin</button>
+        </div>
+        <pre id="ep-curl" class="curl mono"></pre>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+</body>
+</html>

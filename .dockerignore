@@ -1,0 +1,26 @@
+# Jangan ikut ke build context / image.
+
+# Dependency & artefak lokal
+node_modules
+
+# Folder data lokal (SQLite) — di container pakai volume /data
+data
+
+# Rahasia — JANGAN pernah masuk image
+.env
+
+# File database SQLite (db, db-shm, db-wal) & tes lokal
+*.db*
+
+# Repo metadata
+.git
+
+# Tidak dibutuhkan di dalam image (Dockerfile menyalin file aplikasi secara eksplisit)
+test
+deploy
+README.md
+SPEC.md
+.gitignore
+docker-compose.yml
+Dockerfile
+.dockerignore

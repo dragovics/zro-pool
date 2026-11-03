@@ -1,0 +1,24 @@
+# =============================================================================
+# Contoh Caddyfile — reverse proxy HTTPS untuk zro-pool.
+# Berlaku untuk deploy systemd maupun Docker (yang penting Caddy bisa
+# menjangkau 127.0.0.1:3600).
+#
+# Yang perlu diperhatikan:
+# - Caddy mengurus HTTPS secara OTOMATIS (sertifikat Let's Encrypt + renewal),
+#   asalkan DNS domain (A/AAAA record) sudah mengarah ke IP VPS ini.
+# - Set TRUST_PROXY=1 di .env (lalu restart service/container) supaya
+#   aplikasi membaca IP client asli dari X-Forwarded-For.
+# - Port 3600 tidak perlu di-expose ke publik; cukup buka 80/443 di firewall.
+#
+# Pemakaian:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile   # sesuaikan domainnya
+#   sudo systemctl reload caddy
+# =============================================================================
+
+your-domain.com {
+	# flush_interval -1 = langsung teruskan byte ke client, tanpa buffering —
+	# penting agar streaming SSE (/v1/chat/completions stream:true) mulus.
+	reverse_proxy 127.0.0.1:3600 {
+		flush_interval -1
+	}
+}

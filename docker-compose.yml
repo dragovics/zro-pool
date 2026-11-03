@@ -1,0 +1,31 @@
+# =============================================================================
+# zro-pool — Zro API key pool gateway (zro.moonmath.ai)
+#
+# Cara menjalankan di VPS:
+#   1) cp .env.example .env   lalu edit — WAJIB ganti ADMIN_PASSWORD!
+#   2) docker compose up -d --build
+#   3) Dashboard: http://VPS-IP:3600/admin
+#      Login default: admin / admin  ->  GANTI SEGERA setelah login pertama!
+#
+# Database SQLite tersimpan di named volume `zro_data`
+# (aman walau container di-rebuild / dihapus).
+# =============================================================================
+
+services:
+  zro-pool:
+    build: .
+    container_name: zro-pool
+    ports:
+      - "3600:3600"
+    env_file:
+      - .env
+    # Pin DB_PATH ke named volume, meskipun .env berisi nilai default
+    # untuk lokal (./data/zro-pool.db) — env di sini menang atas env_file.
+    environment:
+      DB_PATH: /data/zro-pool.db
+    volumes:
+      - zro_data:/data
+    restart: unless-stopped
+
+volumes:
+  zro_data:
